@@ -1,14 +1,16 @@
-from datetime import datetime
+from datetime import datetime, time
 
 import rammb_himawari
 
 
 def himawari8_rammb(saveloc):
-    img = rammb_himawari.create(datetime(2017, 7, 21, 1, 30), zoom=3, band=2,
+    now = datetime.utcnow()
+    last_hr = datetime.combine(now, time(now.hour - 1))
+    img = rammb_himawari.create(last_hr, zoom=3, band=2,
                                 rangex=range(3, 5), rangey=range(1, 3))
     img.save(saveloc)
 
 
 if __name__ == '__main__':
-    loc = '/your/loc/here/img.png'
+    loc = 'img.png'
     himawari8_rammb(loc)

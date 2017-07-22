@@ -1,6 +1,6 @@
 from itertools import product
 
-from common import stitch
+from core import stitch
 
 PARENT_URL = 'http://rammb-slider.cira.colostate.edu/data/imagery'
 
