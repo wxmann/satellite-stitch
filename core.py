@@ -2,6 +2,7 @@ import os
 import random
 import string
 import tempfile
+import warnings
 
 import grequests
 import shutil
@@ -22,20 +23,23 @@ def save_tiles(pos_url_map, saveloc):
 
     savedtile_lookup = dict()
     for resp in resps:
+        x, y = pos_lookup[resp.url]
         if resp.status_code == 200:
-            x, y = pos_lookup[resp.url]
-            filename = '{x}{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
+            filename = '{x}_{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
             tile = os.sep.join([saveloc, filename])
             savedtile_lookup[x, y] = tile
             with open(tile, 'wb') as f:
                 resp.raw.decode_content = True
                 shutil.copyfileobj(resp.raw, f)
+        else:
+            warnings.warn('Error in getting tile at position: ({},{}), this image might '
+                          'not stitch correctly'.format(x, y))
 
     return savedtile_lookup
 
 
 def _randomstr(size):
-    ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 
 class StitchException(Exception):
@@ -95,7 +99,7 @@ class TileArray(object):
     def width(self):
         return self._cellwidth * self._cols
 
-    def merge(self, mode='RGB'):
+    def merge(self, mode):
         output = Image.new(mode, (self.width, self.height))
         for i in range(self._rows):
             for j in range(self._cols):
@@ -103,3 +107,10 @@ class TileArray(object):
                 ypos = i * self._cellheight
                 output.paste(self[i, j], (xpos, ypos))
         return output
+
+
+def overlay(bottom, top):
+    bottom = bottom.convert('RGBA')
+    top = top.convert('RGBA')
+    bottom.paste(top, (0, 0), top)
+    return bottom
