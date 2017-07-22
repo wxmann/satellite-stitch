@@ -1,27 +1,63 @@
+import os
+import random
+import string
+import tempfile
+
+import grequests
+import shutil
 from PIL import Image
+
+
+def stitch(pos_urls, imgmode='RGB'):
+    with tempfile.TemporaryDirectory() as tmpd:
+        tilelocs = save_tiles(pos_urls, tmpd)
+        tileimgs = {(x, y): Image.open(tileloc) for ((x, y), tileloc) in tilelocs.items()}
+        return TileArray.fromtiles(tileimgs).merge(imgmode)
+
+
+def save_tiles(pos_url_map, saveloc):
+    pos_lookup = {v: k for k, v in pos_url_map.items()}
+    reqs = (grequests.get(url) for url in pos_lookup.keys())
+    resps = grequests.map(reqs, stream=True)
+
+    savedtile_lookup = dict()
+    for resp in resps:
+        if resp.status_code == 200:
+            x, y = pos_lookup[resp.url]
+            filename = '{x}{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
+            tile = os.sep.join([saveloc, filename])
+            savedtile_lookup[x, y] = tile
+            with open(tile, 'wb') as f:
+                resp.raw.decode_content = True
+                shutil.copyfileobj(resp.raw, f)
+
+    return savedtile_lookup
+
+
+def _randomstr(size):
+    ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 
 class StitchException(Exception):
     pass
 
 
-def combine(tilelookup, rangex, rangey):
-    tiles = {(x, y): Image.open(tileloc) for ((x, y), tileloc) in tilelookup.items()}
-    return TileArray.fromtiles(tiles, rangex, rangey).merge('RGB')
-
-
 class TileArray(object):
     @classmethod
-    def fromtiles(cls, tilelookup, rangex, rangey):
-        if not tilelookup:
+    def fromtiles(cls, tileimgs):
+        if not tileimgs:
             raise ValueError("Empty tiles")
 
-        minx = min(rangex)
-        miny = min(rangey)
-        rows = len(rangey)
-        cols = len(rangex)
+        xpos = [pos[0] for pos in tileimgs.keys()]
+        ypos = [pos[1] for pos in tileimgs.keys()]
+        minx, maxx = min(*xpos), max(*xpos)
+        miny, maxy = min(*ypos), max(*ypos)
+        rangex = range(minx, maxx + 1)
+        rangey = range(miny, maxy + 1)
+        rows = maxy - miny + 1
+        cols = maxx - minx + 1
 
-        animg = tilelookup[next(iter(tilelookup.keys()))]
+        animg = next(iter(tileimgs.values()))
         imwidth, imheight = animg.size
 
         inst = cls(rows, cols, imwidth, imheight)
@@ -29,7 +65,7 @@ class TileArray(object):
             for i in rangex:
                 joffset = j - miny
                 ioffset = i - minx
-                inst[joffset, ioffset] = tilelookup[i, j]
+                inst[joffset, ioffset] = tileimgs[i, j]
         return inst
 
     def __init__(self, rows, cols, cellwidth, cellheight):
@@ -40,7 +76,7 @@ class TileArray(object):
         self._cellheight = cellheight
 
     def _check_access(self, key):
-        if not isinstance(key, tuple) and len(key) != 2:
+        if not isinstance(key, (list, tuple)) and len(key) != 2:
             raise IndexError("Tile array must be indexed by two items")
 
     def __getitem__(self, item):
