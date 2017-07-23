@@ -24,7 +24,7 @@ def save_tiles(pos_url_map, saveloc):
     savedtile_lookup = dict()
     for resp in resps:
         x, y = pos_lookup[resp.url]
-        if resp.status_code == 200:
+        if resp is not None and resp.status_code == 200:
             filename = '{x}_{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
             tile = os.sep.join([saveloc, filename])
             savedtile_lookup[x, y] = tile
@@ -109,8 +109,8 @@ class TileArray(object):
         return output
 
 
-def overlay(bottom, top):
+def overlay(bottom, top, pos=(0, 0)):
     bottom = bottom.convert('RGBA')
     top = top.convert('RGBA')
-    bottom.paste(top, (0, 0), top)
+    bottom.paste(top, pos, top)
     return bottom
