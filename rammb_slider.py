@@ -1,5 +1,5 @@
 import warnings
-from itertools import product
+from itertools import product as cartesian_product
 
 import grequests
 from PIL import Image
@@ -16,24 +16,24 @@ _sat_himawari = 'himawari'
 _sat_goes16 = 'goes-16'
 
 
-def himawari(timestamp, zoom, band, rangex, rangey,
+def himawari(timestamp, zoom, product, rangex, rangey,
              boundaries=True, latlon=False, logo=True):
 
-    return _get_satellite_img(_sat_himawari, timestamp, zoom, band, rangex, rangey,
+    return _get_satellite_img(_sat_himawari, timestamp, zoom, product, rangex, rangey,
                               boundaries, latlon, logo)
 
 
-def goes16(timestamp, zoom, band, rangex, rangey,
+def goes16(timestamp, zoom, product, rangex, rangey,
            boundaries=True, latlon=False, logo=True):
 
-    return _get_satellite_img(_sat_goes16, timestamp, zoom, band, rangex, rangey,
+    return _get_satellite_img(_sat_goes16, timestamp, zoom, product, rangex, rangey,
                               boundaries, latlon, logo)
 
 
-def _get_satellite_img(sat, timestamp, zoom, band, rangex, rangey,
+def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
                        boundaries, latlon, logo):
 
-    sat_img = just_satellite(sat, timestamp, zoom, band, rangex, rangey)
+    sat_img = just_satellite(sat, timestamp, zoom, product, rangex, rangey)
 
     if boundaries:
         map_bg = map_boundaries(sat, zoom, rangex, rangey)
@@ -57,24 +57,27 @@ def _get_satellite_img(sat, timestamp, zoom, band, rangex, rangey,
     return sat_img
 
 
-def just_satellite(sat, timestamp, zoom, band, rangex, rangey):
+def just_satellite(sat, timestamp, zoom, product, rangex, rangey):
     rangex = tuple(rangex)
     rangey = tuple(rangey)
 
-    sat_urls = {(x, y): _rammb_img_url(timestamp, band, zoom, x, y, sat)
-                for x, y in product(rangex, rangey)}
+    if isinstance(product, int):
+        product = 'band_{}'.format(str(product).zfill(2))
+
+    sat_urls = {(x, y): _rammb_img_url(timestamp, product, zoom, x, y, sat)
+                for x, y in cartesian_product(rangex, rangey)}
     return stitch(sat_urls, 'RGB')
 
 
 def map_boundaries(sat, zoom, rangex, rangey):
     bg_map_urls = {(x, y): _map_or_latlon_url(x, y, zoom, 'map', sat)
-                   for x, y in product(rangex, rangey)}
+                   for x, y in cartesian_product(rangex, rangey)}
     return stitch(bg_map_urls, 'RGBA')
 
 
 def latlons(sat, zoom, rangex, rangey):
     bg_map_urls = {(x, y): _map_or_latlon_url(x, y, zoom, 'lat', sat)
-                   for x, y in product(rangex, rangey)}
+                   for x, y in cartesian_product(rangex, rangey)}
     return stitch(bg_map_urls, 'RGBA')
 
 
@@ -92,7 +95,7 @@ def cira_rammb_logos():
     return tuple(logos)
 
 
-def _rammb_img_url(timestamp, band, zoom, xtile, ytile, sat):
+def _rammb_img_url(timestamp, product, zoom, xtile, ytile, sat):
     if sat == _sat_himawari:
         imgtype = 'himawari---full_disk'
         datetimestr = timestamp.strftime('%Y%m%d%H%M00')
@@ -103,12 +106,11 @@ def _rammb_img_url(timestamp, band, zoom, xtile, ytile, sat):
         raise ValueError("Sat argument must be ({})".format(','.join((_sat_himawari, _sat_goes16))))
 
     datestr = timestamp.strftime('%Y%m%d')
-    bandstr = 'band_' + str(band).zfill(2)
     zoomstr = str(zoom).zfill(2)
     position = '{}_{}'.format(str(ytile).zfill(3), str(xtile).zfill(3))
-    return PARENT_URL + '/imagery/{date}/{imgtype}/{band}/' \
+    return PARENT_URL + '/imagery/{date}/{imgtype}/{product}/' \
                         '{datetime}/{zoom}/{position}.png'.format(date=datestr, imgtype=imgtype,
-                                                                  band=bandstr, datetime=datetimestr,
+                                                                  product=product, datetime=datetimestr,
                                                                   zoom=zoomstr, position=position)
 
 
