@@ -12,7 +12,6 @@ CIRA_LOGO_URL = 'http://rammb-slider.cira.colostate.edu/images/cira_logo_200.png
 
 RAMMB_LOGO_URL = 'http://rammb-slider.cira.colostate.edu/images/rammb_logo_150.png'
 
-
 _sat_himawari = 'himawari'
 _sat_goes16 = 'goes-16'
 
@@ -37,10 +36,10 @@ def _get_satellite_img(sat, timestamp, zoom, band, rangex, rangey,
     sat_img = just_satellite(sat, timestamp, zoom, band, rangex, rangey)
 
     if boundaries:
-        map_bg = map_boundaries(rangex, rangey, zoom, sat)
+        map_bg = map_boundaries(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, map_bg)
     if latlon:
-        latlon_bg = latlons(rangex, rangey, zoom, sat)
+        latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
     if logo:
         logo_imgs = cira_rammb_logos()
@@ -67,13 +66,13 @@ def just_satellite(sat, timestamp, zoom, band, rangex, rangey):
     return stitch(sat_urls, 'RGB')
 
 
-def map_boundaries(rangex, rangey, zoom, sat):
+def map_boundaries(sat, zoom, rangex, rangey):
     bg_map_urls = {(x, y): _map_or_latlon_url(x, y, zoom, 'map', sat)
                    for x, y in product(rangex, rangey)}
     return stitch(bg_map_urls, 'RGBA')
 
 
-def latlons(rangex, rangey, zoom, sat):
+def latlons(sat, zoom, rangex, rangey):
     bg_map_urls = {(x, y): _map_or_latlon_url(x, y, zoom, 'lat', sat)
                    for x, y in product(rangex, rangey)}
     return stitch(bg_map_urls, 'RGBA')
