@@ -11,8 +11,8 @@ PARENT_URL = 'http://rammb-slider.cira.colostate.edu/data'
 LOGO_URL = 'http://rammb-slider.cira.colostate.edu/images/cira_logo_200.png'
 
 
-def create(timestamp, zoom, band, rangex, rangey,
-           boundaries=True, latlon=False, logo=True):
+def himawari8(timestamp, zoom, band, rangex, rangey,
+              boundaries=True, latlon=False, logo=True):
     rangex = tuple(rangex)
     rangey = tuple(rangey)
 
