@@ -18,21 +18,18 @@ _sat_goes16 = 'goes-16'
 
 def himawari(timestamp, zoom, product, rangex, rangey,
              boundaries=True, latlon=False, logo=True):
-
     return _get_satellite_img(_sat_himawari, timestamp, zoom, product, rangex, rangey,
                               boundaries, latlon, logo)
 
 
 def goes16(timestamp, zoom, product, rangex, rangey,
            boundaries=True, latlon=False, logo=True):
-
     return _get_satellite_img(_sat_goes16, timestamp, zoom, product, rangex, rangey,
                               boundaries, latlon, logo)
 
 
 def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
                        boundaries, latlon, logo):
-
     sat_img = just_satellite(sat, timestamp, zoom, product, rangex, rangey)
 
     if boundaries:
@@ -100,7 +97,7 @@ def _rammb_img_url(timestamp, product, zoom, xtile, ytile, sat):
         imgtype = 'goes-16---full_disk'
         datetimestr = timestamp.strftime('%Y%m%d%H%M37')
     else:
-        raise ValueError("Sat argument must be ({})".format(','.join((_sat_himawari, _sat_goes16))))
+        raise ValueError("Sat argument must be one of ({})".format(','.join((_sat_himawari, _sat_goes16))))
 
     datestr = timestamp.strftime('%Y%m%d')
     zoomstr = str(zoom).zfill(2)
@@ -117,11 +114,11 @@ def _map_or_latlon_url(x, y, zoom, map_or_lat, sat):
     elif sat == _sat_goes16:
         some_date_str = '20170620160038'
     else:
-        raise ValueError("Sat argument must be ({})".format(','.join((_sat_himawari, _sat_goes16))))
+        raise ValueError("Sat argument must be one of ({})".format(','.join((_sat_himawari, _sat_goes16))))
 
     pos = '{}_{}'.format(str(y).zfill(3), str(x).zfill(3))
-    return PARENT_URL + '/{type}/{sat}/' \
-                        'full_disk/white/{some_date_str}/{zoom}/{pos}.png'.format(type=map_or_lat,
-                                                                                  zoom=str(zoom).zfill(2),
-                                                                                  pos=pos, sat=sat,
-                                                                                  some_date_str=some_date_str)
+    return PARENT_URL + '/{type}/{sat}/full_disk/white/' \
+                        '{some_date_str}/{zoom}/{pos}.png'.format(type=map_or_lat,
+                                                                  zoom=str(zoom).zfill(2),
+                                                                  pos=pos, sat=sat,
+                                                                  some_date_str=some_date_str)

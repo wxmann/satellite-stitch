@@ -110,7 +110,7 @@ class TileArray(object):
 
 
 def overlay(bottom, top, pos=(0, 0)):
-    result = Image.new('RGBA', bottom.size)
+    result = Image.new(bottom.mode, bottom.size)
     result.paste(bottom, (0, 0))
     top_mask = top.convert('RGBA')
     result.paste(top, pos, top_mask)
