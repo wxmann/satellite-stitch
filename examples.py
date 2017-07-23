@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 
+import nict_himawari
 import rammb_slider
 
 
@@ -21,6 +22,15 @@ def goes16_rammb(saveloc):
     img.save(saveloc)
 
 
+def himawari8_nict(saveloc):
+    now = datetime.utcnow()
+    three_hrs_ago = now - timedelta(hours=3)
+    sattime = datetime.combine(three_hrs_ago.date(), time(three_hrs_ago.hour))
+    img = nict_himawari.himawari8(sattime, zoom=5, product='vis',
+                                  rangex=range(10, 13), rangey=range(3, 6), boundaries=True)
+    img.save(saveloc)
+
+
 if __name__ == '__main__':
-    loc = 'img_11.png'
-    goes16_rammb(loc)
+    loc = 'img.png'
+    himawari8_nict(loc)

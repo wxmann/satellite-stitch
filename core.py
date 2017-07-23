@@ -9,7 +9,7 @@ import shutil
 from PIL import Image
 
 
-def stitch(pos_urls, imgmode='RGB'):
+def stitch(pos_urls, imgmode):
     with tempfile.TemporaryDirectory() as tmpd:
         tilelocs = save_tiles(pos_urls, tmpd)
         tileimgs = {(x, y): Image.open(tileloc) for ((x, y), tileloc) in tilelocs.items()}
@@ -110,6 +110,8 @@ class TileArray(object):
 
 
 def overlay(bottom, top, pos=(0, 0)):
+    result = Image.new('RGBA', bottom.size)
+    result.paste(bottom, (0, 0))
     top_mask = top.convert('RGBA')
-    bottom.paste(top, pos, top_mask)
-    return bottom
+    result.paste(top, pos, top_mask)
+    return result

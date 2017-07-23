@@ -58,9 +58,6 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
 
 
 def just_satellite(sat, timestamp, zoom, product, rangex, rangey):
-    rangex = tuple(rangex)
-    rangey = tuple(rangey)
-
     if isinstance(product, int):
         product = 'band_{}'.format(str(product).zfill(2))
 
