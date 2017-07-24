@@ -46,12 +46,16 @@ def _load_tile_inner(pos_url_map, process_response):
     resps = grequests.map(reqs, stream=True)
     tiles = dict()
     for resp in resps:
-        x, y = pos_lookup[resp.url]
-        if resp is not None and resp.status_code == 200:
-            tiles[x, y] = process_response(resp, x, y)
+        if resp is None:
+            warnings.warn('Got a NULL response for a tile, this image might not stitch correctly')
         else:
-            warnings.warn('Error in getting tile at position: ({},{}), this image might '
-                          'not stitch correctly'.format(x, y))
+            x, y = pos_lookup[resp.url]
+            if resp.status_code == 200:
+                tiles[x, y] = process_response(resp, x, y)
+            else:
+                warnings.warn('Got status code: {} instead of 200 while attempting to fetch tile at '
+                              'position: ({},{}), this image might not '
+                              'stitch correctly'.format(resp.status_code, x, y))
     return tiles
 
 
