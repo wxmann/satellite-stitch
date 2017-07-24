@@ -10,7 +10,7 @@ import shutil
 from PIL import Image
 
 
-def stitch(pos_urls, mode, tempfiles=True):
+def stitch(pos_urls, mode, tempfiles=False):
     if tempfiles:
         with tempfile.TemporaryDirectory() as tmpd:
             tilelocs = save_tiles(pos_urls, tmpd)
@@ -23,23 +23,19 @@ def stitch(pos_urls, mode, tempfiles=True):
 
 
 def load_tiles(pos_url_map):
-
-    def loadtobuffer(resp, tiles, x, y):
-        buf = io.BytesIO(resp.content)
-        tiles[x, y] = buf
-
-    return _load_tile_inner(pos_url_map, loadtobuffer)
+    return _load_tile_inner(pos_url_map,
+                            lambda resp, x, y: io.BytesIO(resp.content))
 
 
-def save_tiles(pos_url_map, saveloc):
+def save_tiles(pos_url_map, savedir):
 
-    def savetodisk(resp, tiles, x, y):
+    def savetodisk(resp, x, y):
         filename = '{x}_{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
-        tile = os.sep.join([saveloc, filename])
-        tiles[x, y] = tile
-        with open(tile, 'wb') as f:
+        savedtile_loc = os.sep.join([savedir, filename])
+        with open(savedtile_loc, 'wb') as f:
             resp.raw.decode_content = True
             shutil.copyfileobj(resp.raw, f)
+        return savedtile_loc
 
     return _load_tile_inner(pos_url_map, savetodisk)
 
@@ -50,9 +46,9 @@ def _load_tile_inner(pos_url_map, process_response):
     resps = grequests.map(reqs, stream=True)
     tiles = dict()
     for resp in resps:
+        x, y = pos_lookup[resp.url]
         if resp is not None and resp.status_code == 200:
-            x, y = pos_lookup[resp.url]
-            process_response(resp, tiles, x, y)
+            tiles[x, y] = process_response(resp, x, y)
         else:
             warnings.warn('Error in getting tile at position: ({},{}), this image might '
                           'not stitch correctly'.format(x, y))
@@ -101,7 +97,7 @@ class TileArray(object):
         self._cellheight = cellheight
 
     def _check_access(self, key):
-        if not isinstance(key, (list, tuple)) and len(key) != 2:
+        if not isinstance(key, (list, tuple)) or len(key) != 2:
             raise IndexError("Tile array must be indexed by two items")
 
     def __getitem__(self, item):
