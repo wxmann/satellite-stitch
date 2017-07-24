@@ -3,39 +3,60 @@ import random
 import string
 import tempfile
 import warnings
+import io
 
 import grequests
 import shutil
 from PIL import Image
 
 
-def stitch(pos_urls, imgmode):
-    with tempfile.TemporaryDirectory() as tmpd:
-        tilelocs = save_tiles(pos_urls, tmpd)
-        tileimgs = {(x, y): Image.open(tileloc) for ((x, y), tileloc) in tilelocs.items()}
-        return TileArray.fromtiles(tileimgs).merge(imgmode)
+def stitch(pos_urls, mode, tempfiles=True):
+    if tempfiles:
+        with tempfile.TemporaryDirectory() as tmpd:
+            tilelocs = save_tiles(pos_urls, tmpd)
+            tileimgs = {(x, y): Image.open(tileloc) for ((x, y), tileloc) in tilelocs.items()}
+            return TileArray.fromtiles(tileimgs).merge(mode)
+    else:
+        tilebufs = load_tiles(pos_urls)
+        tileimgs = {(x, y): Image.open(buf) for ((x, y), buf) in tilebufs.items()}
+        return TileArray.fromtiles(tileimgs).merge(mode)
+
+
+def load_tiles(pos_url_map):
+
+    def loadtobuffer(resp, tiles, x, y):
+        buf = io.BytesIO(resp.content)
+        tiles[x, y] = buf
+
+    return _load_tile_inner(pos_url_map, loadtobuffer)
 
 
 def save_tiles(pos_url_map, saveloc):
+
+    def savetodisk(resp, tiles, x, y):
+        filename = '{x}_{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
+        tile = os.sep.join([saveloc, filename])
+        tiles[x, y] = tile
+        with open(tile, 'wb') as f:
+            resp.raw.decode_content = True
+            shutil.copyfileobj(resp.raw, f)
+
+    return _load_tile_inner(pos_url_map, savetodisk)
+
+
+def _load_tile_inner(pos_url_map, process_response):
     pos_lookup = {v: k for k, v in pos_url_map.items()}
     reqs = (grequests.get(url) for url in pos_lookup.keys())
     resps = grequests.map(reqs, stream=True)
-
-    savedtile_lookup = dict()
+    tiles = dict()
     for resp in resps:
-        x, y = pos_lookup[resp.url]
         if resp is not None and resp.status_code == 200:
-            filename = '{x}_{y}_{etc}.png'.format(x=x, y=y, etc=_randomstr(10))
-            tile = os.sep.join([saveloc, filename])
-            savedtile_lookup[x, y] = tile
-            with open(tile, 'wb') as f:
-                resp.raw.decode_content = True
-                shutil.copyfileobj(resp.raw, f)
+            x, y = pos_lookup[resp.url]
+            process_response(resp, tiles, x, y)
         else:
             warnings.warn('Error in getting tile at position: ({},{}), this image might '
                           'not stitch correctly'.format(x, y))
-
-    return savedtile_lookup
+    return tiles
 
 
 def _randomstr(size):

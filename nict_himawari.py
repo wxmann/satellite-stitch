@@ -21,7 +21,7 @@ def himawari8(timestamp, zoom, product, rangex, rangey,
 
 
 _zoom_ref = {
-    'D531106': {1: '1d', 2: '4d', 3: '8d', 4: '16d', 5: '20d'},
+    'D531106': {1: '1d', 2: '2d', 3: '4d', 4: '8d', 5: '16d', 6: '20d'},
     'INFRARED_FULL': {1: '1d', 2: '4d', 3: '8d'}
 }
 
