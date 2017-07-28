@@ -1,35 +1,27 @@
-import warnings
 from itertools import product as cartesian_product
-
-import grequests
-from PIL import Image
 
 from core import stitch, overlay
 
 PARENT_URL = 'http://rammb-slider.cira.colostate.edu/data'
-
-CIRA_LOGO_URL = 'http://rammb-slider.cira.colostate.edu/images/cira_logo_200.png'
-
-RAMMB_LOGO_URL = 'http://rammb-slider.cira.colostate.edu/images/rammb_logo_150.png'
 
 _sat_himawari = 'himawari'
 _sat_goes16 = 'goes-16'
 
 
 def himawari(timestamp, zoom, product, rangex, rangey,
-             boundaries=True, latlon=False, logo=True):
+             boundaries=True, latlon=False):
     return _get_satellite_img(_sat_himawari, timestamp, zoom, product, rangex, rangey,
-                              boundaries, latlon, logo)
+                              boundaries, latlon)
 
 
 def goes16(timestamp, zoom, product, rangex, rangey,
-           boundaries=True, latlon=False, logo=True):
+           boundaries=True, latlon=False):
     return _get_satellite_img(_sat_goes16, timestamp, zoom, product, rangex, rangey,
-                              boundaries, latlon, logo)
+                              boundaries, latlon)
 
 
 def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
-                       boundaries, latlon, logo):
+                       boundaries, latlon):
     sat_img = just_satellite(sat, timestamp, zoom, product, rangex, rangey)
 
     if boundaries:
@@ -38,18 +30,6 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
     if latlon:
         latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
-    if logo:
-        logo_imgs = cira_rammb_logos()
-        if logo_imgs is not None:
-            # start from bottom right and paste left
-            simg_width, simg_height = sat_img.size
-            ypos = simg_height
-            xpos = simg_width
-
-            for logo_img in reversed(logo_imgs):
-                limg_width, limg_height = logo_img.size
-                xpos -= limg_width
-                sat_img = overlay(sat_img, logo_img, pos=(xpos, ypos - limg_height))
 
     return sat_img
 
@@ -73,20 +53,6 @@ def latlons(sat, zoom, rangex, rangey):
     bg_map_urls = {(x, y): _map_or_latlon_url(x, y, zoom, 'lat', sat)
                    for x, y in cartesian_product(rangex, rangey)}
     return stitch(bg_map_urls, 'RGBA')
-
-
-def cira_rammb_logos():
-    reqs = (grequests.get(url) for url in (CIRA_LOGO_URL, RAMMB_LOGO_URL))
-    resps = grequests.map(reqs, stream=True)
-    logos = []
-    for resp in resps:
-        if resp is not None and resp.status_code == 200:
-            resp.raw.decode_content = True
-            logos.append(Image.open(resp.raw))
-        else:
-            warnings.warn('Cannot fetch logos: {}'.format(resp.url))
-            return None
-    return tuple(logos)
 
 
 def _rammb_img_url(timestamp, product, zoom, xtile, ytile, sat):
