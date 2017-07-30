@@ -2,7 +2,7 @@ import warnings
 
 from PIL import Image, ImageFont, ImageDraw
 
-from core import side_by_side, overlay
+from .core import side_by_side, overlay
 
 
 class PostProcessor(object):

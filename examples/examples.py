@@ -1,7 +1,6 @@
 from datetime import datetime, time, timedelta
 
-import nict_himawari
-import rammb_slider
+from stitch import nict_himawari, rammb_slider
 
 
 def himawari8_rammb_philippine_sea():
