@@ -1,8 +1,7 @@
 from itertools import product as cartesian_product
 
 from .core import stitch, overlay
-
-from stitch.postprocess import CIRAPostProcessor
+from .postprocess import CIRAPostProcessor
 
 PARENT_URL = 'http://rammb-slider.cira.colostate.edu/data'
 

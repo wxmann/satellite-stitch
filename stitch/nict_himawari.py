@@ -1,8 +1,7 @@
 from itertools import product as cartesian_product
 
 from .core import stitch, overlay
-
-from stitch.postprocess import PostProcessor
+from .postprocess import PostProcessor
 
 BASE_URL = 'http://himawari8-dl.nict.go.jp/himawari8'
 

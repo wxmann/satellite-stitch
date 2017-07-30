@@ -18,9 +18,7 @@ class PostProcessor(object):
         self._processed.show(*args, **kwargs)
 
     def crop_relative(self, left, top, right, bottom):
-        for arg in (left, top, right, bottom):
-            if arg < 0 or arg > 1.0:
-                raise ValueError("Must supply in box 0 <= arg <= 1")
+        self._check_arg_range(left, top, right, bottom)
 
         width, height = self._processed.size
         self._processed = self._processed.crop((left * width, top * height,
@@ -29,19 +27,68 @@ class PostProcessor(object):
     def minimize(self, width, height):
         self._processed.thumbnail((width, height))
 
-    def timestamp_label(self):
+    def timestamp_label(self, breadth=0.2, padding=0.01):
         drawer = ImageDraw.Draw(self._processed)
         text = self._timestamp.isoformat(sep=' ') + ' UTC'
 
-        font = ImageFont.truetype('resources/Verdana.ttf', 20)
-        textwidth, textheight = drawer.textsize(text, font=font)
+        dummy_obj = Image.new('RGB', self._processed.size)
+        x, _, target_size = self._placement(dummy_obj, 'bottom-left', breadth, padding)
+
+        width, height = 0, 0
+        fontsize = 1
+        font = None
+        while width < target_size.width and height < target_size.width:
+            font = ImageFont.truetype('resources/Verdana.ttf', fontsize)
+            width, height = font.getsize(text)
+            fontsize += 1
+
+        if font is None:
+            raise ValueError("Unexpected error: can't figure the font size")
+
+        y = self._round((1 - padding) * self._processed.height - height)
+        drawer.text((x, y), text, font=font, fill='white')
+
+    def _check_arg_range(self, *args, minval=0.0, maxval=1.0):
+        for arg in args:
+            if arg < minval or arg > maxval:
+                raise ValueError("Must supply 0 <= arg <= 1")
+
+    def _check_breadth_and_padding(self, breadth, padding):
+        self._check_arg_range(breadth, padding, 0.0, 1.0)
+
+        if breadth + 2 * padding > 1:
+            raise ValueError("Supplied breadth and padding forces overlaid item to be out of bounds")
+
+    def _placement(self, obj, corner, breadth, padding):
+        self._check_breadth_and_padding(breadth, padding)
+
+        if corner not in ('top-left', 'top-right',
+                          'bottom-left', 'bottom-right'):
+            raise ValueError("Invalid corner: {}".format(corner))
+
         imgwidth, imgheight = self._processed.size
 
-        # calculate the x,y coordinates of the text
-        margin = 5
-        y = imgheight - textheight - margin
+        padding_abs = min(imgheight, imgwidth) * padding
+        target_dims = imgwidth * breadth, imgheight * breadth
+        resized = obj.copy()
+        resized.thumbnail(target_dims)
 
-        drawer.text((0, y), text, font=font, fill='white')
+        if 'left' in corner:
+            x = self._round(0 + padding_abs)
+        else:
+            x = self._round(imgwidth - padding_abs - resized.width)
+
+        if 'top' in corner:
+            y = self._round(0 + padding_abs)
+        else:
+            y = self._round(imgheight - padding_abs - resized.height)
+
+        return x, y, resized
+
+    def _round(self, arg):
+        if isinstance(arg, float):
+            return int(round(arg))
+        return arg
 
 
 class CIRAPostProcessor(PostProcessor):
@@ -67,7 +114,8 @@ class CIRAPostProcessor(PostProcessor):
 
         return side_by_side(logos[0], logos[1], 'RGBA')
 
-    def cira_rammb_logo(self):
+    def cira_rammb_logo(self, breadth=0.2, padding=0.01):
         logo = CIRAPostProcessor._get_cira_rammb_logo()
-        width, height = self._processed.size
-        self._processed = overlay(self._processed, logo, (width - logo.width, height - logo.height))
+        if logo is not None:
+            x, y, logo_resized = self._placement(logo, 'bottom-right', breadth, padding)
+            self._processed = overlay(self._processed, logo_resized, (x, y))
