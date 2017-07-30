@@ -1,14 +1,15 @@
 import warnings
 
-from PIL import Image
+from PIL import Image, ImageFont, ImageDraw
 
 from core import side_by_side, overlay
 
 
 class PostProcessor(object):
-    def __init__(self, im):
+    def __init__(self, im, timestamp):
         self.original = im
         self._processed = im.copy()
+        self._timestamp = timestamp
 
     def save(self, *args, **kwargs):
         self._processed.save(*args, **kwargs)
@@ -28,10 +29,24 @@ class PostProcessor(object):
     def minimize(self, width, height):
         self._processed.thumbnail((width, height))
 
+    def timestamp_label(self):
+        drawer = ImageDraw.Draw(self._processed)
+        text = self._timestamp.isoformat(sep=' ') + ' UTC'
+
+        font = ImageFont.truetype('resources/Verdana.ttf', 20)
+        textwidth, textheight = drawer.textsize(text, font=font)
+        imgwidth, imgheight = self._processed.size
+
+        # calculate the x,y coordinates of the text
+        margin = 5
+        y = imgheight - textheight - margin
+
+        drawer.text((0, y), text, font=font, fill='white')
+
 
 class CIRAPostProcessor(PostProcessor):
-    def __init__(self, im):
-        super(CIRAPostProcessor, self).__init__(im)
+    def __init__(self, im, timestamp):
+        super(CIRAPostProcessor, self).__init__(im, timestamp)
 
     @staticmethod
     def _get_cira_rammb_logo():

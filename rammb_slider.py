@@ -32,7 +32,7 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
         latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
 
-    return CIRAPostProcessor(sat_img)
+    return CIRAPostProcessor(sat_img, timestamp)
 
 
 def just_satellite(sat, timestamp, zoom, product, rangex, rangey):
