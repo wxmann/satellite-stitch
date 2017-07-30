@@ -136,3 +136,32 @@ def overlay(bottom, top, pos=(0, 0)):
     top_mask = top.convert('RGBA')
     result.paste(top, pos, top_mask)
     return result
+
+
+def side_by_side(im1, im2, mode, valign='bottom'):
+    if valign not in ('top', 'bottom', 'center'):
+        raise ValueError("`valign` argument must be one of `top`, `bottom`, or `center`")
+    w1, h1 = im1.size
+    w2, h2 = im2.size
+
+    new_height = max(h1, h2)
+    new_width = w1 + w2
+
+    new_im = Image.new(mode, (new_width, new_height), color=None)
+
+    def geth(hdiff):
+        if valign == 'bottom':
+            return hdiff
+        elif valign == 'center':
+            return hdiff / 2
+        else:
+            return 0
+
+    if h2 < h1:
+        new_im.paste(im1, (0, 0))
+        new_im.paste(im2, (w1, geth(new_height - h2)))
+    else:
+        new_im.paste(im1, (0, geth(new_height - h1)))
+        new_im.paste(im2, (w1, 0))
+
+    return new_im

@@ -1,6 +1,7 @@
 from itertools import product as cartesian_product
 
 from core import stitch, overlay
+from postprocess import CIRAPostProcessor
 
 PARENT_URL = 'http://rammb-slider.cira.colostate.edu/data'
 
@@ -31,7 +32,7 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
         latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
 
-    return sat_img
+    return CIRAPostProcessor(sat_img)
 
 
 def just_satellite(sat, timestamp, zoom, product, rangex, rangey):
