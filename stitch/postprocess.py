@@ -27,7 +27,11 @@ class PostProcessor(object):
     def minimize(self, width, height):
         self._processed.thumbnail((width, height))
 
-    def timestamp_label(self, breadth=0.2, padding=0.01):
+    def timestamp_label(self, breadth=0.2, padding=0.01, **text_kw):
+        for remove_kw in ('xy', 'text', 'font'):
+            if remove_kw in text_kw:
+                text_kw.pop(remove_kw)
+
         drawer = ImageDraw.Draw(self._processed)
         text = self._timestamp.isoformat(sep=' ') + ' UTC'
 
@@ -37,7 +41,7 @@ class PostProcessor(object):
         width, height = 0, 0
         fontsize = 1
         font = None
-        while width < target_size.width and height < target_size.width:
+        while width < target_size.width and height < target_size.height:
             font = ImageFont.truetype('resources/Verdana.ttf', fontsize)
             width, height = font.getsize(text)
             fontsize += 1
@@ -46,7 +50,7 @@ class PostProcessor(object):
             raise ValueError("Unexpected error: can't figure the font size")
 
         y = self._round((1 - padding) * self._processed.height - height)
-        drawer.text((x, y), text, font=font, fill='white')
+        drawer.text((x, y), text, font=font, **text_kw)
 
     def _check_arg_range(self, *args, minval=0.0, maxval=1.0):
         for arg in args:
@@ -114,7 +118,7 @@ class CIRAPostProcessor(PostProcessor):
 
         return side_by_side(logos[0], logos[1], 'RGBA')
 
-    def cira_rammb_logo(self, breadth=0.2, padding=0.01):
+    def logo(self, breadth=0.2, padding=0.01):
         logo = CIRAPostProcessor._get_cira_rammb_logo()
         if logo is not None:
             x, y, logo_resized = self._placement(logo, 'bottom-right', breadth, padding)

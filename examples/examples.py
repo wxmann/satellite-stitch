@@ -34,6 +34,6 @@ def himawari8_nict():
 
 if __name__ == '__main__':
     img = himawari8_rammb_philippine_sea()
-    img.cira_rammb_logo()
+    img.logo()
     img.timestamp_label()
     img.show()

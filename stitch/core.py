@@ -71,7 +71,7 @@ class TileArray(object):
     @classmethod
     def fromtiles(cls, tileimgs):
         if not tileimgs:
-            raise ValueError("Empty tiles")
+            raise StitchException("Empty tiles")
 
         xpos = [pos[0] for pos in tileimgs.keys()]
         ypos = [pos[1] for pos in tileimgs.keys()]
