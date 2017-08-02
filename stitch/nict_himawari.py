@@ -6,8 +6,15 @@ from .postprocess import NICTPostProcessor
 BASE_URL = 'http://himawari8-dl.nict.go.jp/himawari8'
 
 
-def himawari8(timestamp, zoom, product, rangex, rangey,
-              boundaries=True):
+def vis(timestamp, zoom, rangex, rangey, boundaries=True):
+    return _get_himawari(timestamp, zoom, 'vis', rangex, rangey, boundaries)
+
+
+def ir(timestamp, zoom, rangex, rangey, boundaries=True):
+    return _get_himawari(timestamp, zoom, 'ir', rangex, rangey, boundaries)
+
+
+def _get_himawari(timestamp, zoom, product, rangex, rangey, boundaries):
     sat_urls = {(x, y): _get_product_url(timestamp, zoom, product, x, y)
                 for x, y in cartesian_product(rangex, rangey)}
     sat_img = stitch(sat_urls, 'RGB')
