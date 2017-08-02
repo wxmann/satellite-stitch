@@ -2,7 +2,7 @@ import warnings
 
 from PIL import Image, ImageFont, ImageDraw
 
-from .core import side_by_side, overlay
+from .core import side_by_side, overlay, resource_path
 
 
 class PostProcessor(object):
@@ -42,7 +42,7 @@ class PostProcessor(object):
         fontsize = 1
         font = None
         while width < target_size.width and height < target_size.height:
-            font = ImageFont.truetype('resources/Verdana.ttf', fontsize)
+            font = ImageFont.truetype(resource_path('Verdana.ttf'), fontsize)
             width, height = font.getsize(text)
             fontsize += 1
 
@@ -123,3 +123,13 @@ class CIRAPostProcessor(PostProcessor):
         if logo is not None:
             x, y, logo_resized = self._placement(logo, 'bottom-right', breadth, padding)
             self._processed = overlay(self._processed, logo_resized, (x, y))
+
+
+class NICTPostProcessor(PostProcessor):
+    def __init__(self, im, timestamp):
+        super(NICTPostProcessor, self).__init__(im, timestamp)
+
+    def logo(self, breadth=0.2, padding=0.01):
+        logoimg = Image.open(resource_path('logo_nict.png'), 'r')
+        x, y, logo_resized = self._placement(logoimg, 'bottom-right', breadth, padding)
+        self._processed = overlay(self._processed, logo_resized, (x, y))

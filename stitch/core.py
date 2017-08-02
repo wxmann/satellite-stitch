@@ -165,3 +165,8 @@ def side_by_side(im1, im2, mode, valign='bottom'):
         new_im.paste(im2, (w1, 0))
 
     return new_im
+
+
+def resource_path(relpath):
+    filepath = os.path.dirname(os.path.abspath(__file__))
+    return os.sep.join([filepath, 'resources', relpath])

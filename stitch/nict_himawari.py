@@ -1,7 +1,7 @@
 from itertools import product as cartesian_product
 
 from .core import stitch, overlay
-from .postprocess import PostProcessor
+from .postprocess import NICTPostProcessor
 
 BASE_URL = 'http://himawari8-dl.nict.go.jp/himawari8'
 
@@ -18,7 +18,7 @@ def himawari8(timestamp, zoom, product, rangex, rangey,
         coastline_img = stitch(coastline_urls, 'RGBA')
         sat_img = overlay(sat_img, coastline_img)
 
-    return PostProcessor(sat_img, timestamp)
+    return NICTPostProcessor(sat_img, timestamp)
 
 
 _zoom_ref = {
