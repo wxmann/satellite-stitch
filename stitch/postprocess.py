@@ -52,6 +52,9 @@ class PostProcessor(object):
         y = self._round((1 - padding) * self._processed.height - height)
         drawer.text((x, y), text, font=font, **text_kw)
 
+    def apply_filter(self, imfilt):
+        self._processed = self._processed.filter(imfilt)
+
     def _check_arg_range(self, *args, minval=0.0, maxval=1.0):
         for arg in args:
             if arg < minval or arg > maxval:

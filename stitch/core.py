@@ -1,12 +1,12 @@
+import io
 import os
 import random
+import shutil
 import string
 import tempfile
 import warnings
-import io
 
 import grequests
-import shutil
 from PIL import Image
 
 
@@ -167,6 +167,6 @@ def side_by_side(im1, im2, mode, valign='bottom'):
     return new_im
 
 
-def resource_path(relpath):
-    filepath = os.path.dirname(os.path.abspath(__file__))
-    return os.sep.join([filepath, 'resources', relpath])
+def resource_path(file):
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.sep.join([this_dir, 'resources', file])

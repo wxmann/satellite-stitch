@@ -26,8 +26,8 @@ def himawari8_nict():
     now = datetime.utcnow()
     three_hrs_ago = now - timedelta(hours=3)
     sattime = datetime.combine(three_hrs_ago.date(), time(three_hrs_ago.hour))
-    img = nict_himawari.himawari8(sattime, zoom=5, product='vis',
-                                  rangex=range(8, 12), rangey=range(2, 5), boundaries=True)
+    img = nict_himawari.vis(sattime, zoom=5,
+                            rangex=range(8, 12), rangey=range(2, 5), boundaries=True)
     img.crop_relative(0.25, 0.25, 1.0, 0.90)
     return img
 
