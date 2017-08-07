@@ -6,7 +6,7 @@ import sys
 import pytest
 from PIL import Image
 
-from stitch.core import stitch, StitchException
+from stitch.core import stitch, StitchException, overlay, side_by_side
 from stitch.tests._common import image_equivalence_test, path_of_test_resource
 
 if sys.version_info >= (3, 0):
@@ -123,3 +123,74 @@ def test_stitch_with_no_tiles(load):
 
     with pytest.raises(StitchException):
         stitch(dummy_paths, 'RGB')
+
+
+@image_equivalence_test
+def test_overlay_top_left():
+    im = _open_image('imgs/baseimg.jpg')
+    wm = _open_image('imgs/copyright-small.png')
+    result = overlay(im, wm)
+    expected = _open_image('imgs/happypath_overlay_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_overlay_bottom_right():
+    im = _open_image('imgs/baseimg.jpg')
+    wm = _open_image('imgs/copyright-small.png')
+    result = overlay(im, wm, pos=(im.width - wm.width, im.height - wm.height))
+    expected = _open_image('imgs/bottomright_overlay_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_sidebyside_right_img_larger():
+    im1 = _open_image('imgs/baseimg.jpg')
+    im2 = _open_image('imgs/anotherimg.jpg')
+    result = side_by_side(im1, im2, 'RGB')
+    expected = _open_image('imgs/happypath_sidebyside_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_sidebyside_left_img_smaller():
+    im1 = _open_image('imgs/anotherimg.jpg')
+    im2 = _open_image('imgs/baseimg.jpg')
+    result = side_by_side(im1, im2, 'RGB')
+    expected = _open_image('imgs/smallerleft_sidebyside_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_sidebyside_center_align():
+    im1 = _open_image('imgs/anotherimg.jpg')
+    im2 = _open_image('imgs/baseimg.jpg')
+    result = side_by_side(im1, im2, 'RGB', valign='center')
+    expected = _open_image('imgs/valign_center_sidebyside_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_sidebyside_top_align():
+    im1 = _open_image('imgs/anotherimg.jpg')
+    im2 = _open_image('imgs/baseimg.jpg')
+    result = side_by_side(im1, im2, 'RGB', valign='top')
+    expected = _open_image('imgs/valign_top_sidebyside_result.jpg')
+
+    return result, expected
+
+
+def test_sidebyside_invalid_align():
+    im1 = _open_image('imgs/anotherimg.jpg')
+    im2 = _open_image('imgs/baseimg.jpg')
+    with pytest.raises(ValueError):
+        side_by_side(im1, im2, 'RGB', valign='invalid-argument')
+
+
+def _open_image(file):
+    return Image.open(path_of_test_resource(file), 'r')

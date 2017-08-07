@@ -1,3 +1,5 @@
+from __future__ import division
+
 import io
 import os
 import random
@@ -158,7 +160,7 @@ def side_by_side(im1, im2, mode, valign='bottom'):
         if valign == 'bottom':
             return hdiff
         elif valign == 'center':
-            return hdiff / 2
+            return hdiff // 2
         else:
             return 0
 
