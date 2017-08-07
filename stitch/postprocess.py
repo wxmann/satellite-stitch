@@ -1,5 +1,3 @@
-import warnings
-
 from PIL import Image, ImageFont, ImageDraw
 
 from .core import side_by_side, overlay, resource_path
@@ -107,22 +105,9 @@ class CIRAPostProcessor(PostProcessor):
 
     @staticmethod
     def _get_cira_rammb_logo():
-        import grequests
-        cira_logo = 'http://rammb-slider.cira.colostate.edu/images/cira_logo_200.png'
-        rammb_logo = 'http://rammb-slider.cira.colostate.edu/images/rammb_logo_150.png'
-
-        reqs = (grequests.get(url) for url in (cira_logo, rammb_logo))
-        resps = grequests.map(reqs, stream=True)
-        logos = []
-        for resp in resps:
-            if resp is not None and resp.status_code == 200:
-                resp.raw.decode_content = True
-                logos.append(Image.open(resp.raw))
-            else:
-                warnings.warn('Cannot fetch logos: {}'.format(resp.url))
-                return None
-
-        return side_by_side(logos[0], logos[1], 'RGBA')
+        cira = Image.open(resource_path('cira_logo_200.png'))
+        rammb = Image.open(resource_path('rammb_logo_150.png'))
+        return side_by_side(cira, rammb, 'RGBA')
 
     def logo(self, breadth=0.2, padding=0.01):
         logo = CIRAPostProcessor._get_cira_rammb_logo()
