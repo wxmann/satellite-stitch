@@ -11,6 +11,9 @@ class PostProcessor(object):
         self._processed = im.copy()
         self._timestamp = timestamp
 
+    def result(self):
+        return self._processed.copy()
+
     def save(self, *args, **kwargs):
         self._processed.save(*args, **kwargs)
 
