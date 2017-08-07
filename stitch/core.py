@@ -90,7 +90,10 @@ class TileArray(object):
             for i in rangex:
                 joffset = j - miny
                 ioffset = i - minx
-                inst[joffset, ioffset] = tileimgs[i, j]
+                try:
+                    inst[joffset, ioffset] = tileimgs[i, j]
+                except KeyError:
+                    pass
         return inst
 
     def __init__(self, rows, cols, cellwidth, cellheight):
@@ -126,7 +129,9 @@ class TileArray(object):
             for j in range(self._cols):
                 xpos = j * self._cellwidth
                 ypos = i * self._cellheight
-                output.paste(self[i, j], (xpos, ypos))
+                tile = self[i, j]
+                if tile is not None:
+                    output.paste(tile, (xpos, ypos))
         return output
 
 

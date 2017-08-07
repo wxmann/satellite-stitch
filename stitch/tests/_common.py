@@ -23,7 +23,7 @@ def imgs_eq(im1, im2, tolerance=2):
     return rmsdiff(im1, im2) < tolerance
 
 
-def load_test_resource(filename):
+def path_of_test_resource(filename):
     this_dir = os.path.dirname(os.path.abspath(__file__))
     return os.sep.join([this_dir, filename])
 
