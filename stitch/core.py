@@ -13,6 +13,13 @@ from PIL import Image
 
 
 def stitch(pos_urls, mode, tempfiles=False):
+    # don't overwhelm the server with requests
+    if len(pos_urls) > 40:
+        raise StitchException("At this time, cannot stitch more than 40 tiles together. "
+                              "Please reduce the number of tiles in your request. The easiest "
+                              "way to achieve this for a given satellite area is by reducing "
+                              "your zoom level.")
+
     if tempfiles:
         with tempfile.TemporaryDirectory() as tmpd:
             tilelocs = save_tiles(pos_urls, tmpd)
@@ -45,7 +52,7 @@ def save_tiles(pos_url_map, savedir):
 def _load_tile_inner(pos_url_map, process_response):
     pos_lookup = {v: k for k, v in pos_url_map.items()}
     reqs = (grequests.get(url) for url in pos_lookup.keys())
-    resps = grequests.map(reqs, stream=True)
+    resps = grequests.map(reqs, stream=True, size=10)
     tiles = dict()
     for resp in resps:
         if resp is None:

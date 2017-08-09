@@ -124,6 +124,19 @@ def test_stitch_with_no_tiles(load):
         stitch(dummy_paths, 'RGB')
 
 
+@patch('stitch.core.load_tiles')
+def test_stitch_limit_number_of_tiles(load):
+    load.side_effect = _dummy_load()
+
+    too_many_tiles = {
+        (x, y): 'http://dummy.com/({}_{}).png'.format(x, y)
+        for x, y in cartesian_product(range(10), range(5))
+    }
+
+    with pytest.raises(StitchException):
+        stitch(too_many_tiles, 'RGB')
+
+
 @image_equivalence_test
 def test_overlay_top_left():
     im = open_image('imgs/baseimg.jpg')
