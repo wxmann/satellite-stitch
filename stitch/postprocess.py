@@ -105,8 +105,8 @@ class CIRAPostProcessor(PostProcessor):
 
     @staticmethod
     def _get_cira_rammb_logo():
-        cira = Image.open(resource_path('cira_logo_200.png'))
-        rammb = Image.open(resource_path('rammb_logo_150.png'))
+        cira = Image.open(resource_path('cira_logo_200.png'), 'r')
+        rammb = Image.open(resource_path('rammb_logo_150.png'), 'r')
         return side_by_side(cira, rammb, 'RGBA')
 
     def logo(self, breadth=0.2, padding=0.01):
