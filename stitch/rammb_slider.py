@@ -12,19 +12,19 @@ _sat_goes16 = 'goes-16'
 
 
 def himawari(timestamp, zoom, product, rangex, rangey,
-             boundaries=True, latlon=False):
+             boundaries=True, latlon=False, crop=None):
     return _get_satellite_img(_sat_himawari, timestamp, zoom, product, rangex, rangey,
-                              boundaries, latlon)
+                              boundaries, latlon, crop)
 
 
 def goes16(timestamp, zoom, product, rangex, rangey,
-           boundaries=True, latlon=False):
+           boundaries=True, latlon=False, crop=None):
     return _get_satellite_img(_sat_goes16, timestamp, zoom, product, rangex, rangey,
-                              boundaries, latlon)
+                              boundaries, latlon, crop)
 
 
 def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
-                       boundaries, latlon):
+                       boundaries, latlon, crop):
     sat_img, exact_timestamp = just_satellite(sat, timestamp, zoom, product, rangex, rangey)
 
     if boundaries:
@@ -34,7 +34,10 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
         latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
 
-    return CIRAPostProcessor(sat_img, exact_timestamp)
+    postprocessor = CIRAPostProcessor(sat_img, exact_timestamp)
+    if crop:
+        postprocessor.crop_relative(*crop)
+    return postprocessor
 
 
 def just_satellite(sat, timestamp, zoom, product, rangex, rangey):

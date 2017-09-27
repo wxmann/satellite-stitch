@@ -6,15 +6,15 @@ from .postprocess import NICTPostProcessor
 BASE_URL = 'http://himawari8-dl.nict.go.jp/himawari8'
 
 
-def vis(timestamp, zoom, rangex, rangey, boundaries=True):
-    return _get_himawari(timestamp, zoom, 'vis', rangex, rangey, boundaries)
+def vis(timestamp, zoom, rangex, rangey, boundaries=True, crop=None):
+    return _get_himawari(timestamp, zoom, 'vis', rangex, rangey, boundaries, crop)
 
 
-def ir(timestamp, zoom, rangex, rangey, boundaries=True):
-    return _get_himawari(timestamp, zoom, 'ir', rangex, rangey, boundaries)
+def ir(timestamp, zoom, rangex, rangey, boundaries=True, crop=None):
+    return _get_himawari(timestamp, zoom, 'ir', rangex, rangey, boundaries, crop)
 
 
-def _get_himawari(timestamp, zoom, product, rangex, rangey, boundaries):
+def _get_himawari(timestamp, zoom, product, rangex, rangey, boundaries, crop):
     sat_urls = {(x, y): _get_product_url(timestamp, zoom, product, x, y)
                 for x, y in cartesian_product(rangex, rangey)}
     sat_img = stitch(sat_urls, 'RGB')
@@ -25,7 +25,10 @@ def _get_himawari(timestamp, zoom, product, rangex, rangey, boundaries):
         coastline_img = stitch(coastline_urls, 'RGBA')
         sat_img = overlay(sat_img, coastline_img)
 
-    return NICTPostProcessor(sat_img, timestamp)
+    postprocessor = NICTPostProcessor(sat_img, timestamp)
+    if crop:
+        postprocessor.crop_relative(*crop)
+    return postprocessor
 
 
 _zoom_ref = {

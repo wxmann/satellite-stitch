@@ -84,8 +84,8 @@ class TileArray(object):
 
         xpos = [pos[0] for pos in tileimgs.keys()]
         ypos = [pos[1] for pos in tileimgs.keys()]
-        minx, maxx = min(*xpos), max(*xpos)
-        miny, maxy = min(*ypos), max(*ypos)
+        minx, maxx = min(xpos), max(xpos)
+        miny, maxy = min(ypos), max(ypos)
         rangex = range(minx, maxx + 1)
         rangey = range(miny, maxy + 1)
         rows = maxy - miny + 1

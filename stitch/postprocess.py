@@ -9,6 +9,10 @@ class PostProcessor(object):
         self._processed = im.copy()
         self._timestamp = timestamp
 
+    @property
+    def size(self):
+        return self._processed.size
+
     def result(self):
         return self._processed.copy()
 
@@ -27,6 +31,12 @@ class PostProcessor(object):
 
     def minimize(self, width, height):
         self._processed.thumbnail((width, height))
+
+    def scale(self, factor, interp=None):
+        if interp is None:
+            interp = Image.BILINEAR
+        new_size = tuple(int(round(dim * factor)) for dim in self.size)
+        self._processed = self._processed.resize(new_size, resample=interp)
 
     def timestamp_label(self, breadth=0.2, padding=0.01, **text_kw):
         for remove_kw in ('xy', 'text', 'font'):
