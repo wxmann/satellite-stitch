@@ -12,6 +12,7 @@ def main():
     img.crop_relative(0, 0, 1, 0.9)
     img.logo()
     img.timestamp_label()
+    img.colorbar()
     img.show()
 
 

@@ -25,6 +25,8 @@ def goes16(timestamp, zoom, product, rangex, rangey,
 
 def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
                        boundaries, latlon, crop):
+    if isinstance(product, int):
+        product = 'band_{}'.format(str(product).zfill(2))
     sat_img, exact_timestamp = just_satellite(sat, timestamp, zoom, product, rangex, rangey)
 
     if boundaries:
@@ -34,16 +36,13 @@ def _get_satellite_img(sat, timestamp, zoom, product, rangex, rangey,
         latlon_bg = latlons(sat, zoom, rangex, rangey)
         sat_img = overlay(sat_img, latlon_bg)
 
-    postprocessor = CIRAPostProcessor(sat_img, exact_timestamp)
+    postprocessor = CIRAPostProcessor(sat_img, product, exact_timestamp)
     if crop:
         postprocessor.crop_relative(*crop)
     return postprocessor
 
 
 def just_satellite(sat, timestamp, zoom, product, rangex, rangey):
-    if isinstance(product, int):
-        product = 'band_{}'.format(str(product).zfill(2))
-
     seconds = 0
     # HACK: the seconds value of GOES-16 imagery does not remain constant.
     if sat == _sat_goes16:

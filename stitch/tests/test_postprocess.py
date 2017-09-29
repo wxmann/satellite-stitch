@@ -4,7 +4,7 @@ import pytest
 from PIL import ImageFilter
 
 from stitch.postprocess import PostProcessor, CIRAPostProcessor, NICTPostProcessor
-from stitch.tests._common import open_image, image_equivalence_test
+from stitch.tests._common import open_image, image_equivalence_test, save_image
 
 
 @image_equivalence_test
@@ -58,16 +58,23 @@ def test_add_sharpen_filter():
 
 @image_equivalence_test
 def test_add_cira_rammb_logo():
-    im = CIRAPostProcessor(open_image('imgs/baseimg.jpg'), datetime.utcnow())
+    im = CIRAPostProcessor(open_image('imgs/baseimg.jpg'), 'dummy_product', datetime.utcnow())
     im.logo()
     return im.result(), open_image('imgs/baseimg_ciralogo.jpg')
 
 
 @image_equivalence_test
 def test_add_cira_rammb_logo_big():
-    im = CIRAPostProcessor(open_image('imgs/baseimg.jpg'), datetime.utcnow())
+    im = CIRAPostProcessor(open_image('imgs/baseimg.jpg'), 'dummy_product', datetime.utcnow())
     im.logo(breadth=0.5)
     return im.result(), open_image('imgs/baseimg_ciralogo_big.jpg')
+
+
+@image_equivalence_test
+def test_add_colorbar():
+    im = CIRAPostProcessor(open_image('imgs/baseimg.jpg'), 'band_14', datetime.utcnow())
+    im.colorbar()
+    return im.result(), open_image('imgs/baseimg_colorbar.jpg')
 
 
 @image_equivalence_test

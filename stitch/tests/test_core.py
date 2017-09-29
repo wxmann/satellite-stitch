@@ -5,8 +5,8 @@ from itertools import product as cartesian_product
 import pytest
 from PIL import Image
 
-from stitch.core import stitch, StitchException, overlay, side_by_side
-from stitch.tests._common import image_equivalence_test, path_of_test_resource, open_image
+from stitch.core import stitch, StitchException, overlay, side_by_side, stack
+from stitch.tests._common import image_equivalence_test, path_of_test_resource, open_image, save_image
 
 if sys.version_info >= (3, 0):
     from unittest.mock import patch
@@ -202,3 +202,64 @@ def test_sidebyside_invalid_align():
     im2 = open_image('imgs/baseimg.jpg')
     with pytest.raises(ValueError):
         side_by_side(im1, im2, 'RGB', valign='invalid-argument')
+
+
+@image_equivalence_test
+def test_stack_top_img_larger():
+    im1 = open_image('imgs/baseimg.jpg')
+    im2 = open_image('imgs/anotherimg.jpg')
+    result = stack(im1, im2, 'RGB', halign='left')
+    expected = open_image('imgs/halign_left_stack_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_stack_bottom_img_larger():
+    im1 = open_image('imgs/anotherimg.jpg')
+    im2 = open_image('imgs/baseimg.jpg')
+    result = stack(im1, im2, 'RGB', halign='left')
+    expected = open_image('imgs/halign_left_bottom_larger_stack_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_stack_halign_right():
+    im1 = open_image('imgs/baseimg.jpg')
+    im2 = open_image('imgs/anotherimg.jpg')
+    result = stack(im1, im2, 'RGB', halign='right')
+    expected = open_image('imgs/halign_right_stack_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_stack_halign_center():
+    im1 = open_image('imgs/baseimg.jpg')
+    im2 = open_image('imgs/anotherimg.jpg')
+    result = stack(im1, im2, 'RGB', halign='center')
+    expected = open_image('imgs/halign_center_stack_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_stack_halign_right_bottom_img_larger():
+    im1 = open_image('imgs/anotherimg.jpg')
+    im2 = open_image('imgs/baseimg.jpg')
+    result = stack(im1, im2, 'RGB', halign='right')
+    expected = open_image('imgs/halign_right_bottom_larger_stack_result.jpg')
+
+    return result, expected
+
+
+@image_equivalence_test
+def test_both_stack_and_side_by_side():
+    im1 = open_image('imgs/baseimg.jpg')
+    im2 = open_image('imgs/anotherimg.jpg')
+    result1 = stack(im1, im2, 'RGB', halign='center')
+    result_final = side_by_side(result1, im2, 'RGB', valign='top')
+    expected = open_image('imgs/stack_and_side_by_side.jpg')
+
+    return result_final, expected

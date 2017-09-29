@@ -152,7 +152,7 @@ def overlay(bottom, top, pos=(0, 0)):
     return result
 
 
-def side_by_side(im1, im2, mode, valign='bottom'):
+def side_by_side(im1, im2, mode, valign='bottom', bg=None):
     if valign not in ('top', 'bottom', 'center'):
         raise ValueError("`valign` argument must be one of `top`, `bottom`, or `center`")
     w1, h1 = im1.size
@@ -161,7 +161,7 @@ def side_by_side(im1, im2, mode, valign='bottom'):
     new_height = max(h1, h2)
     new_width = w1 + w2
 
-    new_im = Image.new(mode, (new_width, new_height), color=None)
+    new_im = Image.new(mode, (new_width, new_height), color=bg)
 
     def geth(hdiff):
         if valign == 'bottom':
@@ -177,6 +177,35 @@ def side_by_side(im1, im2, mode, valign='bottom'):
     else:
         new_im.paste(im1, (0, geth(new_height - h1)))
         new_im.paste(im2, (w1, 0))
+
+    return new_im
+
+
+def stack(imtop, imbottom, mode, halign='left', bg=None):
+    if halign not in ('left', 'center', 'right'):
+        raise ValueError("`halign` argument must be one of `left`, `center`, or `right`")
+    w1, h1 = imtop.size
+    w2, h2 = imbottom.size
+
+    new_height = h1 + h2
+    new_width = max(w1, w2)
+
+    new_im = Image.new(mode, (new_width, new_height), color=bg)
+
+    def getw(wdiff):
+        if halign == 'left':
+            return 0
+        elif halign == 'center':
+            return wdiff // 2
+        else:
+            return wdiff
+
+    if w2 < w1:
+        new_im.paste(imtop, (0, 0))
+        new_im.paste(imbottom, (getw(new_width - w2), new_height - h2))
+    else:
+        new_im.paste(imtop, (getw(new_width - w1), 0))
+        new_im.paste(imbottom, (0, new_height - h2))
 
     return new_im
 

@@ -1,6 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 
-from .core import side_by_side, overlay, resource_path
+from .core import side_by_side, overlay, resource_path, stack
 
 
 class PostProcessor(object):
@@ -109,9 +109,23 @@ class PostProcessor(object):
         return arg
 
 
+_cira_band_colorbar_map = {}
+for band in range(1, 4):
+    _cira_band_colorbar_map[band] = 'colorbar_ch1-2-3.png'
+for band in range(4, 7):
+    _cira_band_colorbar_map[band] = 'colorbar_ch4-5-6.png'
+_cira_band_colorbar_map[7] = 'colorbar_ch7.png'
+_cira_band_colorbar_map[8] = 'colorbar_ch8.png'
+for band in range(9, 11):
+    _cira_band_colorbar_map[band] = 'colorbar_ch9-10.png'
+for band in range(12, 17):
+    _cira_band_colorbar_map[band] = 'colorbar_ch11-12-13-14-15-16.png'
+
+
 class CIRAPostProcessor(PostProcessor):
-    def __init__(self, im, timestamp):
+    def __init__(self, im, product, timestamp):
         super(CIRAPostProcessor, self).__init__(im, timestamp)
+        self._product = product
 
     @staticmethod
     def _get_cira_rammb_logo():
@@ -119,11 +133,31 @@ class CIRAPostProcessor(PostProcessor):
         rammb = Image.open(resource_path('rammb_logo_150.png'), 'r')
         return side_by_side(cira, rammb, 'RGBA')
 
+    def _get_colorbar(self):
+        if self._product.startswith('band'):
+            band = int(self._product[-2:])
+            return Image.open(resource_path(_cira_band_colorbar_map[band]), 'r')
+        else:
+            return None
+
     def logo(self, breadth=0.2, padding=0.01):
         logo = CIRAPostProcessor._get_cira_rammb_logo()
         if logo is not None:
             x, y, logo_resized = self._placement(logo, 'bottom-right', breadth, padding)
             self._processed = overlay(self._processed, logo_resized, (x, y))
+
+    def colorbar(self):
+        cbar = self._get_colorbar()
+        if cbar is None:
+            import warnings
+            warnings.warn("Colorbar not available for product: {}".format(self._product))
+            return
+
+        cbar_width, _ = cbar.size
+        im_width, _ = self._processed.size
+        if cbar_width > im_width:
+            cbar.thumbnail((im_width, im_width), resample=Image.NEAREST)
+        self._processed = stack(self._processed, cbar, 'RGB', halign='right')
 
 
 class NICTPostProcessor(PostProcessor):
